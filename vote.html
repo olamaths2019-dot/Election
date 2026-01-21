@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FIRST ACTIVA COLLEGE ELECTION</title>
+<style>
+body{font-family:Arial;background:#f2f4f7;padding:20px}
+h1,h2{text-align:center}
+.card{background:#fff;padding:15px;margin:15px 0;border-radius:8px}
+button{padding:8px 14px;margin:5px;cursor:pointer}
+input{padding:7px;width:95%}
+.hidden{display:none}
+.win{color:green;font-weight:bold}
+</style>
+</head>
+
+<body>
+
+<h1>2025/2026 STUDENT E-VOTING</h1>
+<h2>Your vote is your voice. Use it to shape tomorrow.</h2>
+
+<!-- LOGIN -->
+<div class="card" id="loginBox">
+<h3>Student Login</h3>
+<input id="surname" placeholder="Surname"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+<button onclick="login()">Login</button>
+</div>
+<img src="logo.png">
+
+<!-- VOTING -->
+<div id="voteBox" class="hidden"></div>
+<button id="submitBtn" class="hidden" onclick="submitVote()">Submit Vote</button>
+
+<!-- RESULTS -->
+<div id="resultBox" class="hidden">
+<h2>LIVE RESULTS & WINNERS</h2>
+<div id="results"></div>
+</div>
+
+<script>
+const positions=[
+"Senior Boy","Assistant Senior Boy","Senior Girl","Assistant Senior Girl",
+"SRC Member 1","SRC Member 2","SRC Member 3",
+"Time Keeper","Assistant Time Keeper",
+"Library Prefect","Assistant Library Prefect",
+"Assembly Prefect 1","Assembly Prefect 2",
+"Health Prefect Boy","Health Prefect Girl",
+"Social Prefect Boy","Social Prefect Girl",
+"Labour Prefect 1","Labour Prefect 2",
+"Laboratory Prefect 1","Laboratory Prefect 2",
+"Punctuality Prefect 1","Punctuality Prefect 2"
+];
+
+let votes = JSON.parse(localStorage.getItem("votes")) || {};
+let votedUsers = JSON.parse(localStorage.getItem("votedUsers")) || {};
+let selectedVotes = {};
+let userKey = "";
+
+function login(){
+ let s = surname.value.trim().toLowerCase();
+ let p = password.value.trim();
+
+ if(!s || !p){ alert("Fill all fields"); return; }
+
+ userKey = btoa(s + ":" + p); // unique student ID
+
+ if(votedUsers[userKey]){
+   alert("You have already voted. Multiple voting is not allowed.");
+   return;
+ }
+
+ loginBox.classList.add("hidden");
+ voteBox.classList.remove("hidden");
+ submitBtn.classList.remove("hidden");
+ resultBox.classList.remove("hidden");
+
+ loadBallot();
+ showResults();
+}
+
+function loadBallot(){
+ voteBox.innerHTML="";
+ positions.forEach(pos=>{
+   votes[pos]=votes[pos]||{A:0,B:0};
+   voteBox.innerHTML+=`
+   <div class="card">
+   <h3>${pos}</h3>
+   <input placeholder="Candidate A name"><br><br>
+   <input placeholder="Candidate B name"><br><br>
+   <button onclick="selectVote('${pos}','A')">Vote A</button>
+   <button onclick="selectVote('${pos}','B')">Vote B</button>
+   </div>`;
+ });
+}
+
+function selectVote(pos,choice){
+ selectedVotes[pos]=choice;
+ alert(pos+" selected");
+}
+
+function submitVote(){
+ if(Object.keys(selectedVotes).length!==positions.length){
+   alert("You must vote for ALL positions");
+   return;
+ }
+
+ for(let p in selectedVotes){
+   votes[p][selectedVotes[p]]++;
+ }
+
+ votedUsers[userKey]=true;
+
+ localStorage.setItem("votes",JSON.stringify(votes));
+ localStorage.setItem("votedUsers",JSON.stringify(votedUsers));
+
+ alert("Vote submitted successfully!");
+ submitBtn.disabled=true;
+ showResults();
+}
+
+function showResults(){
+ results.innerHTML="";
+ for(let p in votes){
+   let A=votes[p].A, B=votes[p].B;
+   let win = A>B ? "Candidate A WINS 🏆" :
+             B>A ? "Candidate B WINS 🏆" :
+             "TIE";
+   results.innerHTML+=`
+   <div class="card">
+   <h4>${p}</h4>
+   A: ${A} | B: ${B}<br>
+   <span class="win">${win}</span>
+   </div>`;
+ }
+}
+</script>
+
+</body>
+</html>
